@@ -1,38 +1,66 @@
-# LLM Tray Manager & Chat (Docker)
+# LLM Tray Manager
 
+A lightweight system tray application for Linux to manage local LLM (Large Language Model) servers using **Ollama** and **Docker**.
 
-## About 
+It provides a quick way to check if your LLM server is running, see if it's using CPU or GPU, start/stop the server, and even chat with models directly from your desktop.
 
-AI is becomming a thing and local AI models running on a local server are very usefull while coding and other things. While Ollama by itself doasnt consume much resources running on Docker container I wanted to have possibility to start / stop the container. 
+Check video below.  
 
-Next feature that I wanted was to show if models are running and using my GPU. 
+## Demo
 
-So next step was to put some quick interaction with local AI LLMs. This comes handy if you don't need much and just want to rethink a subject or something with help of local AI. Posibilities when having active AI on the system are endless but just a fact that your expensive graphic card/s that you don't use for gaming because you have to brain out a lot is great.
+<!-- Upload a video or GIF here to show the app in action. On GitHub, you can drag and drop an .mp4 file into the editor to generate a link. -->
 
-This application provides a system tray icon for easy management and interaction with your LLM server (e.g., Ollama Docker instance), acting as an LLM tray icon. It allows you to start and stop the LLM server container, list available models, and initiate chat sessions directly from your system tray.
+## Features
 
-For now this program is only for debian based systems runnning local LLMs on Ollama docker. This might change in the future if I find more time. 
+*   **System Tray Indicator**: Visual status of your Ollama container (Stopped, Running on CPU, Running on GPU).
+*   **Control**: Start and Stop the Ollama Docker container easily.
+*   **Model Management**: Pull new models and select which model to run.
+*   **Chat Interface**: A built-in chat window with syntax highlighting for code blocks.
+*   **Docker Integration**: Works with existing Docker setups or Docker Compose.
 
-Functions:
-- List installed models 
-- Start a chat with a selected model
-- Send messages to the selected model
-- Start and stop LLM server docker container 
-- manage docker instance name that is running Ollama (for now)
-- 
+## Prerequisites
 
-## Installation 
+*   **Linux** (Tested on Debian/Ubuntu based systems)
+*   **Docker** installed and running.
+*   **Docker nvidia container runtime** for GPU support (if you're using a machine with a GPU).
+*   **Python 3**
 
+## Installation
 
-1. Make sure you have Python 3.8+ installed.
-2. Installed Docker and Ollama. If you plan to use a `docker-compose.yml` file, ensure Docker Compose is also installed.
-
-**Install from .deb package**
-
-Latest deb package is in the `deb_dist` folder.
-
-Install using apt to install dependencies if not installed: 
+### Option 1: Install via Debian Package (.deb)
+Check the [Releases](https://github.com/yourusername/llm-tray-manager/releases) page for the latest `.deb` file.
 
 ```bash
-sudo apt install ./deb_dist/llm-tray-icon_1.0_amd64.deb
+sudo dpkg -i llm-tray-manager_1.0-1_all.deb
+sudo apt-get install -f  # To fix any missing dependencies
 ```
+
+### Option 2: Run from Source
+
+1.  Clone the repository:
+    ```bash
+    git clone https://github.com/yourusername/llm-tray-manager.git
+    cd llm-tray-manager
+    ```
+
+2.  Install dependencies:
+    ```bash
+    pip install -r requirements.txt
+    ```
+    *Note: On some Linux distributions, it is recommended to install PyQt5 via your package manager (e.g., `sudo apt install python3-pyqt5`).*
+
+3.  Run the application:
+    ```bash
+    python3 llm_tray_manager.py
+    ```
+
+## Usage
+
+1.  Launch the application.
+2.  Right-click the tray icon (Llama head).
+3.  Select **Start LLM Server** if it's not running.
+4.  Select **Chat with selected LLM Model** to open the chat interface.
+
+## License
+
+This project is licensed under the GPLv3 License - see the LICENSE.txt file for details.

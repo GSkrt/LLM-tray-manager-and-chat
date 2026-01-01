@@ -178,6 +178,7 @@ class LlmTrayManager:
         self.menu.addSeparator()
 
         self.tray.setContextMenu(self.menu)
+        self.tray.activated.connect(self.start_chat_from_tray_icon)
 
         # 3. Setup a Timer to check status every 5 seconds
         self.timer = QTimer()
@@ -203,7 +204,19 @@ class LlmTrayManager:
                 self.tray.setIcon(QIcon(os.path.join(self.image_dir, "llm_tray_default.png"))) # Fallback to default icon
             self.timer.stop() # No need to check status if Docker is not available
         
-        
+    def start_chat_from_tray_icon(self, reason):
+        if reason == QSystemTrayIcon.Trigger:
+            # Check if a modal dialog (like the chat window) is already open
+            if QApplication.activeModalWidget():
+                QApplication.activeModalWidget().activateWindow()
+                # notify user that window is already open
+                self.show_status_message("LLM Tray Manager", "Chat window is already open.", 5000)
+                return
+
+            if self.send_prompt_action.isEnabled():
+                self.open_window_send_prompt_and_show_result_in_dialog()
+            else:
+                self.show_status_message("LLM Tray Manager", "Please start the LLM Server first to chat.", 2000)   
        
         
     def change_timer_interval_input(self): 
@@ -228,9 +241,14 @@ class LlmTrayManager:
         dialog.setWindowFlags(QtCore.Qt.Window | QtCore.Qt.WindowMinMaxButtonsHint | QtCore.Qt.WindowCloseButtonHint)
         
     
-        
-        # initial size of the chat dialog
-        dialog.resize(600, 600)
+        # Restore geometry if saved
+        settings = self.read_settings()
+        if 'chat_window_geometry' in settings:
+            geometry_hex = settings['chat_window_geometry']
+            dialog.restoreGeometry(QtCore.QByteArray.fromHex(geometry_hex.encode()))
+        else:
+            # initial size of the chat dialog
+            dialog.resize(600, 600)
         
         # first call function to sellect ollama model if not selected yet 
         if not self.selected_ollama_model:
@@ -243,6 +261,7 @@ class LlmTrayManager:
         chat_display = QListWidget()
         chat_display.setStyleSheet("QListWidget { background-color: #ECE5DD; border: none; }")
         chat_display.setSelectionMode(QAbstractItemView.NoSelection)
+        chat_display.setVerticalScrollMode(QAbstractItemView.ScrollPerPixel)
         
         # Handle resize to update bubble widths dynamically
         def chat_resize_event(event):
@@ -270,10 +289,26 @@ class LlmTrayManager:
         prompt_input.setPlaceholderText("Type your message here... (Press Enter to send)")
         layout.addWidget(prompt_input)
 
+        # Buttons Layout
+        buttons_layout = QHBoxLayout()
+
+        clear_button = QPushButton("Clear Chat History")
         send_button = QPushButton("Send")
+        
+        buttons_layout.addWidget(clear_button)
+        buttons_layout.addWidget(send_button)
+        
+        layout.addLayout(buttons_layout)
         
         # Initialize chat history for this session
         dialog.chat_history = []
+        
+        # Clear history function
+        def clear_chat():
+            chat_display.clear()
+            dialog.chat_history = []
+
+        clear_button.clicked.connect(clear_chat)
         
         # Handle Enter key to send
         def keyPressEvent(event):
@@ -284,10 +319,14 @@ class LlmTrayManager:
         prompt_input.keyPressEvent = keyPressEvent
         
         send_button.clicked.connect(lambda: self.send_prompt_and_show_result(prompt_input, chat_display, dialog))
-        layout.addWidget(send_button)
 
         dialog.setLayout(layout)
         dialog.exec_()
+        
+        # Save geometry
+        settings = self.read_settings()
+        settings['chat_window_geometry'] = dialog.saveGeometry().toHex().data().decode()
+        self.save_settings(settings)
 
     def send_prompt_and_show_result(self, prompt_input, chat_display, dialog):
         prompt = prompt_input.toPlainText().strip()
@@ -354,6 +393,7 @@ class LlmTrayManager:
             
             layout.setContentsMargins(10, 5, 10, 5)
             widget.setLayout(layout)
+            widget.adjustSize()
             item.setSizeHint(widget.sizeHint())
             chat_display.addItem(item)
             chat_display.setItemWidget(item, widget)

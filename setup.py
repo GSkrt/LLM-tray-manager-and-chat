@@ -20,7 +20,7 @@ if __name__ == "__main__":
             ],
         },
         data_files=[
-            ("share/llm-tray-manager/images", ["images/llm_tray_default.png", "images/llm_tray_cpu_running.png", "images/llm_tray_gpu_running.png", "images/llm_tray_not_running.png"]),
+            ("share/llm-tray-manager/images", ["images/llm_tray_default.png", "images/llm_tray_cpu_running.png", "images/llm_tray_gpu_running.png", "images/llm_tray_not_running.png", "images/llm_chat_window_icon.png"]),
             ("share/applications", ["llm-tray-manager.desktop"]), # Assuming this file will be renamed
             ("share/doc/llm-tray-manager", ["LICENSE.txt"]),
         ],
