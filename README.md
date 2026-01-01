@@ -12,7 +12,7 @@ Check video below.
 
 ## Features
 
-*   **System Tray Indicator**: Visual status of your Ollama container (Stopped, Running on CPU, Running on GPU).
+*   **System Tray Indicator**: Visual status of your Ollama container (Stopped, Running on CPU, Running on GPU). Detection is done by checking the Docker process list giving square around lama icon if CPU and round for GPU. 
 *   **Control**: Start and Stop the Ollama Docker container easily.
 *   **Model Management**: Pull new models and select which model to run.
 *   **Chat Interface**: A built-in chat window with syntax highlighting for code blocks.
