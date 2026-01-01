@@ -1,2 +1,3 @@
-include ollama-manager.desktop
+include LICENSE.txt
+include llm-tray-manager.desktop
 recursive-include images *.png

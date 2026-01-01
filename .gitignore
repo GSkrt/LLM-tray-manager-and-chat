@@ -7,3 +7,7 @@ __pycache__/
 .vscode/
 *.egg-info/
 ollama/
+build/
+dist/
+deb_dist/*
+!deb_dist/*.deb
