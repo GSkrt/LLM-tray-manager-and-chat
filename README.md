@@ -32,7 +32,7 @@ Check video below.
 ## Installation
 
 ### Option 1: Install via Debian Package (.deb)
-Check the [Releases](https://github.com/yourusername/llm-tray-manager/releases) page for the latest `.deb` file.
+Check the [Releases](https://github.com/GSkrt/LLM-tray-manager-and-chat/releases) page for the latest `.deb` file.
 
 ```bash
 sudo dpkg -i llm-tray-manager_1.0-1_all.deb
@@ -43,7 +43,7 @@ sudo apt-get install -f  # To fix any missing dependencies
 
 1.  Clone the repository:
     ```bash
-    git clone https://github.com/yourusername/llm-tray-manager.git
+    git clone https://github.com/GSkrt/LLM-tray-manager-and-chat.git
     cd llm-tray-manager
     ```
 
