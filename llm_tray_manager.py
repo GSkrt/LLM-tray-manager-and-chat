@@ -234,13 +234,18 @@ class LlmTrayManager:
         
     def open_window_send_prompt_and_show_result_in_dialog(self):
         # Create a dialog window for sending prompts
+        
+        
+        
         dialog = QDialog() # This dialog is for chatting with an LLM model
         dialog.setWindowTitle("Chat with LLM model: " + (self.selected_ollama_model if self.selected_ollama_model else "No model selected"))
         layout = QVBoxLayout()
         # add resize to maximum button to dialog 
         dialog.setWindowFlags(QtCore.Qt.Window | QtCore.Qt.WindowMinMaxButtonsHint | QtCore.Qt.WindowCloseButtonHint)
         
-    
+        # add dialog window icon to show in taskbar instead of default qt icon
+        dialog.setWindowIcon(QtGui.QIcon('images/llm_chat_window_icon.png'))
+        
         # Restore geometry if saved
         settings = self.read_settings()
         if 'chat_window_geometry' in settings:
@@ -399,20 +404,22 @@ class LlmTrayManager:
             if chat_display.viewport().width() > 0:
                 current_width = chat_display.viewport().width()
             
-            label_width = int((current_width - 50) * 0.85) 
+            label_width = int((current_width - 50) * 0.9) 
             label = QLabel(final_html)
             label.setWordWrap(True)
-            label.setMaximumWidth(label_width) 
+            label.setMinimumWidth(label_width) 
             label.setTextInteractionFlags(QtCore.Qt.TextSelectableByMouse)
             label.setOpenExternalLinks(True)
             
             if role == "User":
-                label.setStyleSheet("background-color: #DCF8C6; color: black; border-radius: 10px; padding: 10px; font-size: 12pt;")
+                label.setStyleSheet("background-color: #DCF8C6; color: black; border-radius: 15px; padding: 10px; font-size: 12pt;")
+                # Add stretch before the widget to push it to the right
                 layout.addStretch()
                 layout.addWidget(label)
             else:
-                label.setStyleSheet("background-color: #FFFFFF; color: black; border-radius: 10px; padding: 10px; font-size: 12pt;")
+                label.setStyleSheet("background-color: #FFFFFF; color: black; border-radius: 15px; padding: 10px; font-size: 12pt;")
                 layout.addWidget(label)
+                # Add stretch after the widget to keep it on the left
                 layout.addStretch()
             
             layout.setContentsMargins(10, 5, 10, 5)
