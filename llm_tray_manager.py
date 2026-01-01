@@ -8,7 +8,7 @@ import sys
 import subprocess
 import re
 import html # Keep html import as it's used in chat display
-from PyQt5.QtWidgets import QApplication, QSystemTrayIcon, QMenu, QFileDialog, QMessageBox, QInputDialog, QStyle, QAction, QDialog, QVBoxLayout, QTextEdit, QPushButton, QListWidget, QListWidgetItem, QLabel, QHBoxLayout, QWidget, QAbstractItemView, QLineEdit
+from PyQt5.QtWidgets import QApplication, QSystemTrayIcon, QMenu, QFileDialog, QMessageBox, QInputDialog, QStyle, QAction, QDialog, QVBoxLayout, QTextEdit, QPushButton, QListWidget, QListWidgetItem, QLabel, QHBoxLayout, QWidget, QAbstractItemView, QLineEdit, QShortcut
 from PyQt5 import QtGui, QtCore
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import QTimer, QProcess # Import QProcess
@@ -257,9 +257,20 @@ class LlmTrayManager:
         font = QtGui.QFont()
         font.setPointSize(12)
         
+        # label on top to show selected model name 
+        model_label = QLabel(f"Selected LLM Model: {self.selected_ollama_model if self.selected_ollama_model else 'No model selected'}")
+        font_label = QtGui.QFont()
+        font_label.setPointSize(12)
+        font_label.setBold(True)
+        model_label.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
+        model_label.setFont(font_label)
+        
+        layout.addWidget(model_label)
+        
+        
         # Chat Display (History)
         chat_display = QListWidget()
-        chat_display.setStyleSheet("QListWidget { background-color: #ECE5DD; border: none; }")
+        chat_display.setStyleSheet("QListWidget { background-color: #ECE5DD; border: 1px solid #0d5c7a; border-radius: 10px; padding: 10px; }")
         chat_display.setSelectionMode(QAbstractItemView.NoSelection)
         chat_display.setVerticalScrollMode(QAbstractItemView.ScrollPerPixel)
         
@@ -284,6 +295,7 @@ class LlmTrayManager:
         
         # Input Area
         prompt_input = QTextEdit()
+        prompt_input.setStyleSheet("QTextEdit { background-color: #FFFFFF; border: 1px solid #0d5c7a; border-radius: 10px; padding: 10px; }")
         prompt_input.setFont(font)
         prompt_input.setMaximumHeight(100)
         prompt_input.setPlaceholderText("Type your message here... (Press Enter to send)")
@@ -291,9 +303,14 @@ class LlmTrayManager:
 
         # Buttons Layout
         buttons_layout = QHBoxLayout()
-
+        buttons_layout.setSpacing(10)
+        
         clear_button = QPushButton("Clear Chat History")
-        send_button = QPushButton("Send")
+        clear_button.setStyleSheet("QPushButton { background-color: #546e7a; color: white; padding: 10px; border: 2px solid #0d5c7a; border-radius: 10px; } QPushButton:hover { background-color: #455a64; }")
+        clear_button.setMinimumHeight(50)
+        send_button = QPushButton("Ask question (or press Enter to send)")
+        send_button.setStyleSheet("QPushButton { background-color: #63a0c5; color: white; padding: 10px; border: 2px solid #0d5c7a; border-radius: 10px; } QPushButton:hover { background-color: #175a83; }")
+        send_button.setMinimumHeight(50)
         
         buttons_layout.addWidget(clear_button)
         buttons_layout.addWidget(send_button)
@@ -310,6 +327,9 @@ class LlmTrayManager:
 
         clear_button.clicked.connect(clear_chat)
         
+        
+        
+        
         # Handle Enter key to send
         def keyPressEvent(event):
             if event.key() == QtCore.Qt.Key_Return and not (event.modifiers() & QtCore.Qt.ShiftModifier):
@@ -317,6 +337,10 @@ class LlmTrayManager:
             else:
                 QTextEdit.keyPressEvent(prompt_input, event)
         prompt_input.keyPressEvent = keyPressEvent
+        
+        # Handle F11 for fullscreen (Global for dialog)
+        dialog.shortcut_f11 = QShortcut(QtGui.QKeySequence(QtCore.Qt.Key_F11), dialog)
+        dialog.shortcut_f11.activated.connect(lambda: dialog.showNormal() if dialog.isFullScreen() else dialog.showFullScreen())
         
         send_button.clicked.connect(lambda: self.send_prompt_and_show_result(prompt_input, chat_display, dialog))
 
@@ -527,6 +551,17 @@ class LlmTrayManager:
                 
                 # add menu text to show selected model, show it in bold 
                 self.choose_ollama_model_action.setText(f"Select LLM Model (Selected: {item})")
+                
+                # if chat window is open, update its title and label
+                active_dialog = QApplication.activeModalWidget()
+                if active_dialog and isinstance(active_dialog, QDialog) and active_dialog.windowTitle().startswith("Chat with LLM model"):
+                    active_dialog.setWindowTitle("Chat with LLM model: " + item)
+                    # update label inside dialog
+                    for i in range(active_dialog.layout().count()):
+                        widget = active_dialog.layout().itemAt(i).widget()
+                        if isinstance(widget, QLabel):
+                            widget.setText(f"Selected LLM Model: {item}")
+                            break
                 
         else:
             QMessageBox.warning(None, "No Models", "Could not retrieve LLM models.")
