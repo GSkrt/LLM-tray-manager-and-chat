@@ -7,12 +7,15 @@
 
 A lightweight system tray application for Linux to manage local LLM (Large Language Model) servers using **Ollama** and **Docker**. 
 
-It provides a quick way to check if your LLM server is running, see if it's using CPU or GPU, start/stop the server, and even chat with models directly from your desktop.
+It serves two main functions: 
+1. Docker based Ollama management (status, pull model, remove model etc.)
+2. Quick chat interface accessible from system tray. 
 
-Right now program works with ollama docker image. More LLM servers will be added in future.
+Currently, the program works with the Ollama Docker image. More LLM servers will be added in the future.
 
-It was designed for status checking but I'm using it more and more for quick LLM chat interface available in the taskbar.
-Chat interface was designed to talk with multiple installed models at once. As such it is very usefull when doing quick brain storming tasks.  
+It was designed for status checking, but it serves well as a quick LLM chat interface available in the taskbar. 
+The chat interface was designed to talk with multiple installed models at once. 
+As such, it is very useful for quick brainstorming tasks when you want to access all the strengths of different installed AI models.  
 
 
 ## Functions and GUI
@@ -30,9 +33,9 @@ When Ollama is using GPU:
 ![ollama running gpu status](images/llm_tray_gpu_running.png)
 
 When there is no docker container with Ollama running: 
-![gpu not runing](images/llm_tray_not_running.png)
+![gpu not running](images/llm_tray_not_running.png)
 
-This statuses ware the main reason why I needed this app. 
+These statuses were the main reason why I created this app. 
 
 ### Taskbar and functions overview
 On **right click** you will get menu to access basic functions. Currently there is: 
@@ -51,18 +54,16 @@ On **right click** you will get menu to access basic functions. Currently there 
 
 ### Chat interface
 
-Chat interface can be envoked by left clicking status icon or using menu option. 
-Its a simple interface with a twist, it sends same prompt to multiple models that can be selected using dropdown menu. 
-So you can gather info from multiple AI models running in the background. For code it's using black background so for all those looking for quick 
-coding help its ok. 
+The Chat interface can be invoked by left-clicking the status icon or using the menu option. 
+It's a simple interface with a twist: it sends the same prompt to multiple models that can be selected using the dropdown menu. 
+This allows you to gather info from multiple AI models running in the background. It features syntax highlighting for code blocks.
 
 ![Chat window](readme_images/chat_window_v1.png)
   
 
 ## Demo Video 
 
-Sorry I know It's too fast overview, but you can get the point...
-
+Here is a quick overview of the application in action:
 
 
 https://github.com/user-attachments/assets/4ee96f3e-75c8-4be9-a838-429e1794580b
@@ -80,6 +81,7 @@ https://github.com/user-attachments/assets/4ee96f3e-75c8-4be9-a838-429e1794580b
 ## Prerequisites
 
 *   **Linux** (Tested on Debian/Ubuntu based systems)
+*   **User permissions**: Ensure your user is in the `docker` group (`sudo usermod -aG docker $USER`).
 *   **Docker** installed and running.
 *   **Docker nvidia container runtime** for GPU support (if you're using a machine with a GPU).
 *   **Python 3**
