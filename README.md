@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="images/llm_tray_default.png" alt="LLM Tray Manager Icon" width="250">
+  <img src="images/tray_chat_ai_default.png" alt="LLM Tray Manager Icon" width="250">
 </p>
 
 
@@ -26,13 +26,13 @@ System tray icon and status checking is done in the taskbar. When GPU is availab
 ![status bar gpu working](readme_images/status_bar_gpu_working.png)
 
 When Ollama is using CPU: 
-![when cpu running](images/llm_tray_cpu_running.png)
+![when cpu running](images/tray_chat_ai_cpu_running.png)
 
 When Ollama is using GPU: 
-![ollama running gpu status](images/llm_tray_gpu_running.png)
+![ollama running gpu status](images/tray_chat_ai_gpu_running.png)
 
 When there is no docker container with Ollama running: 
-![gpu not running](images/llm_tray_not_running.png)
+![gpu not running](images/tray_chat_ai_not_running.png)
 
 These statuses were the main reason why I created this app. 
 
