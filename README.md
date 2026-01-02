@@ -9,7 +9,7 @@ A lightweight system tray application for Linux to manage local LLM (Large Langu
 on your personal computer.  Main reason for using this is to as quickly as possible to local Ai chat, see it's status and manage models. 
 
 It serves two main functions: 
-1. Docker based Ollama management (status, pull model, remove model etc.)
+1. Docker based Ollama management (status, pull model, remove model , start and stop docker instance running llms)
 2. Quick chat interface accessible from system tray with options to run single prompt on multiple models at once. 
 
 It was built for managing Ai models from tray, but this prompt to multiple models quickly became its core feature. 
@@ -62,7 +62,7 @@ This allows you to gather info from multiple AI models running in the background
 
 ## Demo Video 
 
-Here is a quick overview of the application in action:
+Here is a quick overview of the application in action (video was made in devel phase..):
 
 
 https://github.com/user-attachments/assets/4ee96f3e-75c8-4be9-a838-429e1794580b
