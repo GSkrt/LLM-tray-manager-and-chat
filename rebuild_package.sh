@@ -10,6 +10,7 @@ sudo apt-get install -y fakeroot build-essential python3-all debhelper dh-python
 echo "2. Cleaning up old builds..."
 rm -rf deb_dist dist build *.egg-info package_build logs
 rm -f settings.json rebuild.sh selected_docker_compose_path.txt
+rm -rf AppDir *.spec build_tmp *.AppImage
 find . -type d -name "__pycache__" -exec rm -rf {} +
 
 echo "3. Generating Debian Source..."

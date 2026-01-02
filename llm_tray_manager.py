@@ -23,11 +23,13 @@ import json
 class LlmTrayManager:
     def __init__(self):
         
-       
-        
         # Determine paths for packaging compatibility
-        # 1. Base dir for static assets (images) relative to the script location
-        self.base_dir = os.path.dirname(os.path.abspath(__file__)) # This will be the installed script location
+        # 1. Check if running as PyInstaller bundle (frozen)
+        if getattr(sys, 'frozen', False):
+            self.base_dir = sys._MEIPASS
+        else:
+            # Base dir for static assets (images) relative to the script location
+            self.base_dir = os.path.dirname(os.path.abspath(__file__)) # This will be the installed script location
         
         # Logic to find images:
         # 1. Check relative to script (Development / Manual install) - this might not be ideal for installed packages

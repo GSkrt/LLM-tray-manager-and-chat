@@ -11,3 +11,6 @@ build/
 dist/
 deb_dist/*
 !deb_dist/*.deb
+linuxdeploy-x86_64.AppImage
+*.log
+build_appimage.sh
