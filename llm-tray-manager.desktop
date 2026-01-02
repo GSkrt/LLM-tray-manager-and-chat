@@ -1,8 +1,0 @@
-[Desktop Entry]
-Type=Application
-Name=LLM Tray Manager
-Comment=Manage local LLM servers using Ollama and Docker
-Exec=llm_tray_manager.py
-Icon=llm_tray_default
-Categories=Utility;
-Terminal=false

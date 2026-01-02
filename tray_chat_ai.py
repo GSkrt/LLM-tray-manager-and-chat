@@ -1,4 +1,4 @@
-# Copyright (c) [current year], Gregor Skrt. All rights reserved.
+# Copyright (c) 2026, Gregor Skrt. All rights reserved.
 #
 __author__ = "Gregor Skrt"
 __email__ = "gregor.skrt@gmail.com"
@@ -8,7 +8,9 @@ import sys
 import subprocess
 import re
 import html # Keep html import as it's used in chat display
-from PyQt5.QtWidgets import QApplication,QComboBox, QSystemTrayIcon, QMenu, QFileDialog, QMessageBox, QInputDialog, QStyle, QAction, QDialog, QVBoxLayout, QTextEdit, QPushButton, QListWidget, QListWidgetItem, QLabel, QHBoxLayout, QWidget, QAbstractItemView, QLineEdit, QShortcut
+from PyQt5.QtWidgets import QApplication,QComboBox, QSystemTrayIcon, QMenu, QFileDialog, QMessageBox, QInputDialog, \
+    QStyle, QAction, QDialog, QVBoxLayout, QTextEdit, QPushButton, QListWidget, \
+        QListWidgetItem, QLabel, QHBoxLayout, QWidget, QAbstractItemView, QLineEdit, QShortcut
 from PyQt5 import QtGui, QtCore
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import QTimer, QProcess # Import QProcess
@@ -20,7 +22,7 @@ from docker import DockerClient, errors as docker_errors
 import json
 
 
-class LlmTrayManager:
+class TrayChatAIManager:
     def __init__(self):
         
         # Determine paths for packaging compatibility
@@ -35,7 +37,7 @@ class LlmTrayManager:
         # 1. Check relative to script (Development / Manual install) - this might not be ideal for installed packages
         local_image_path = os.path.join(self.base_dir, "images")
         # 2. Check standard system path (Debian/Ubuntu install)
-        system_image_path = "/usr/share/llm-tray-manager/images"
+        system_image_path = "/usr/share/tray-chat-ai/images"
         
         if os.path.exists(local_image_path):
             self.image_dir = local_image_path
@@ -43,15 +45,15 @@ class LlmTrayManager:
             self.image_dir = system_image_path
         
         # 2. User data dir for writable files (settings, logs) in user's home, consistent with new name
-        self.user_data_dir = os.path.join(os.path.expanduser("~"), ".config", "llm_tray_manager")
+        self.user_data_dir = os.path.join(os.path.expanduser("~"), ".config", "tray_chat_ai")
         if not os.path.exists(self.user_data_dir):
             os.makedirs(self.user_data_dir)
             
         # Path for the autostart .desktop file, consistent with new name
-        self.autostart_file = os.path.join(os.path.expanduser("~"), ".config", "autostart", "llm-tray-manager.desktop")
+        self.autostart_file = os.path.join(os.path.expanduser("~"), ".config", "autostart", "tray-chat-ai.desktop")
 
         # set up logging for the app 
-        logger = logging.getLogger("LlmTrayManager")
+        logger = logging.getLogger("TrayChatAI")
         logger.setLevel(logging.INFO)
         
         # set path for log directory
@@ -60,7 +62,7 @@ class LlmTrayManager:
             os.makedirs(log_dir)
         
         # configure rotating file handler, consistent with new name
-        log_file_path = os.path.join(log_dir, 'LlmTrayManager.log')
+        log_file_path = os.path.join(log_dir, 'TrayChatAI.log')
         logger_handler = logging.handlers.RotatingFileHandler(log_file_path, maxBytes = 1024*1024, backupCount=5)
         logger_handler.setFormatter(logging.Formatter('%(asctime)s: %(levelname)s - %(message)s'))
         logger.addHandler(logger_handler)
@@ -97,9 +99,10 @@ class LlmTrayManager:
 
         # 1. Create the Tray Icon
         self.tray = QSystemTrayIcon()
-        icon_path = os.path.join(self.image_dir, "llm_tray_default.png")
+        icon_path = os.path.join(self.image_dir, "tray_chat_ai_default.png")
         icon = QIcon(icon_path)  # Replace with your icon path
         self.tray.setIcon(icon)
+        self.tray.setToolTip("TrayChat AI")
         self.tray.setVisible(True)
 
         # 2. Create the Menu
@@ -109,7 +112,7 @@ class LlmTrayManager:
         # add option to send prompt to ollama and show result in dialog
         self.send_prompt_action = QAction("Chat with selected LLM Model")
         # add chat icon from image folder 
-        chat_icon_path = os.path.join(self.image_dir, "llm_chat_window_icon.png")
+        chat_icon_path = os.path.join(self.image_dir, "tray_chat_ai_window_icon.png")
         chat_icon = QIcon(chat_icon_path)  # Replace with your icon path
         
         self.send_prompt_action.setIcon(chat_icon)
@@ -212,7 +215,7 @@ class LlmTrayManager:
             if os.path.exists(error_icon_path):
                 self.tray.setIcon(QIcon(error_icon_path))
             else:
-                self.tray.setIcon(QIcon(os.path.join(self.image_dir, "llm_tray_default.png"))) # Fallback to default icon
+                self.tray.setIcon(QIcon(os.path.join(self.image_dir, "tray_chat_ai_default.png"))) # Fallback to default icon
             self.timer.stop() # No need to check status if Docker is not available
         
     def change_interval_timer_variable(self): 
@@ -288,13 +291,13 @@ class LlmTrayManager:
             if QApplication.activeModalWidget():
                 QApplication.activeModalWidget().activateWindow()
                 # notify user that window is already open
-                self.show_status_message("LLM Tray Manager", "Chat window is already open.", 5000)
+                self.show_status_message("TrayChat AI", "Chat window is already open.", 5000)
                 return
 
             if self.send_prompt_action.isEnabled():
                 self.chat_dialog()
             else:
-                self.show_status_message("LLM Tray Manager", "Please start the LLM Server first to chat.", 2000)   
+                self.show_status_message("TrayChat AI", "Please start the LLM Server first to chat.", 2000)   
        
         
     def change_timer_interval_input(self): 
@@ -378,7 +381,7 @@ class LlmTrayManager:
         dialog.setWindowFlags(QtCore.Qt.Window | QtCore.Qt.WindowMinMaxButtonsHint | QtCore.Qt.WindowCloseButtonHint)
         
         # add dialog window icon to show in taskbar instead of default qt icon
-        dialog.setWindowIcon(QtGui.QIcon('images/llm_chat_window_icon.png'))
+        dialog.setWindowIcon(QtGui.QIcon('images/tray_chat_ai_window_icon.png'))
         
         # Restore geometry if saved
         settings = self.read_settings()
@@ -944,12 +947,12 @@ class LlmTrayManager:
                 if runtime == "nvidia" or (device_requests != "null" and "gpu" in device_requests.lower()): # This check is Ollama-specific
                     mode = "GPU 🚀"
                     # update tray icon image to show gpu mode
-                    gpu_icon_path = os.path.join(self.image_dir, "llm_tray_gpu_running.png")
+                    gpu_icon_path = os.path.join(self.image_dir, "tray_chat_ai_gpu_running.png")
                     self.tray.setIcon(QIcon(gpu_icon_path))
                     self.start_action.setEnabled(True) # Re-enable if it was disabled due to a previous error
                     self.stop_action.setEnabled(True)
                 else: # This is for CPU mode
-                    default_icon_path = os.path.join(self.image_dir, "llm_tray_cpu_running.png")
+                    default_icon_path = os.path.join(self.image_dir, "tray_chat_ai_cpu_running.png")
                     self.tray.setIcon(QIcon(default_icon_path))
                     
                 self.status_action.setText(f"Ollama: Running ({mode})")
@@ -962,7 +965,7 @@ class LlmTrayManager:
                 self.pull_model_action.setEnabled(True) # Enable pull model action if container is running
             else:
                 # set tray icon to not running 
-                not_running_icon_path = os.path.join(self.image_dir, "llm_tray_not_running.png")
+                not_running_icon_path = os.path.join(self.image_dir, "tray_chat_ai_not_running.png")
                 self.tray.setIcon(QIcon(not_running_icon_path))
                 
                 # change icon to show stopped status
@@ -998,7 +1001,7 @@ class LlmTrayManager:
             self.choose_ollama_model_action.setEnabled(False)
             self.pull_model_action.setEnabled(False) # Disable pull model action
             self.send_prompt_action.setEnabled(False)
-            not_running_icon_path = os.path.join(self.image_dir, "llm_tray_not_running.png")
+            not_running_icon_path = os.path.join(self.image_dir, "tray_chat_ai_not_running.png")
             self.tray.setIcon(QIcon(not_running_icon_path))
         except docker_errors.DockerException as e: # This is a generic Docker error
             logging.error(f"Docker daemon not available during status update: {e}") # This error is generic
@@ -1185,15 +1188,15 @@ class LlmTrayManager:
                 os.makedirs(autostart_dir)
             
             # Use the installed console script for Exec, and the installed image path for Icon
-            exec_cmd = "llm-tray-manager" 
-            icon_path = "/usr/share/llm-tray-manager/images/llm_tray_default.png"
+            exec_cmd = "tray-chat-ai" 
+            icon_path = "/usr/share/tray-chat-ai/images/tray_chat_ai_default.png"
 
             desktop_entry = f"""[Desktop Entry]
 Type=Application
-Name=LLM Tray Manager
+Name=TrayChat AI
 Exec={exec_cmd}
 Icon={icon_path}
-Comment=Manage Ollama Docker Containers
+Comment=Chat with AI models from the system tray
 Terminal=false
 Categories=Utility;
 StartupNotify=false
@@ -1219,7 +1222,7 @@ StartupNotify=false
         sys.exit(self.app.exec())
 
 def main():
-    tray = LlmTrayManager()
+    tray = TrayChatAIManager()
     tray.run()
 
 if __name__ == "__main__":

@@ -20,10 +20,10 @@ echo "3. Generating Debian Source..."
 echo "4. Building .deb package..."
 # We enter the generated directory and build manually.
 # Find the generated package directory dynamically based on the new name
-PACKAGE_DIR=$(find deb_dist -maxdepth 1 -type d -name "llm-tray-manager-*" -print -quit)
+PACKAGE_DIR=$(find deb_dist -maxdepth 1 -type d -name "tray-chat-ai-*" -print -quit)
 
 if [ -z "$PACKAGE_DIR" ]; then
-    echo "Error: Could not find the generated package directory (llm-tray-manager-*) in deb_dist."
+    echo "Error: Could not find the generated package directory (tray-chat-ai-*) in deb_dist."
     exit 1
 fi
 

@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=TrayChat AI
+Comment=Chat with local AI models from the system tray and manage them
+Exec=tray-chat-ai
+Icon=tray_chat_ai_default
+Categories=Utility;
+Terminal=false

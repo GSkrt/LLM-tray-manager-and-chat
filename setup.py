@@ -2,13 +2,13 @@ from setuptools import setup
 
 if __name__ == "__main__":
     setup(
-        name="llm-tray-manager",
+        name="tray-chat-ai",
         version="1.0",
-        description="LLM Tray Manager - Manage LLM models from the system tray",
-        long_description="A system tray application to manage LLM models , providing an simple LLM chat interface.",
+        description="TrayChat AI - Chat with AI models from the system tray and manage them easily.",
+        long_description="A system tray application to manage AI models, providing a simple chat interface.",
         author="Gregor Skrt",
         author_email="gregor.skrt@gmail.com",
-        py_modules=["llm_tray_manager"],
+        py_modules=["tray_chat_ai"],
         install_requires=[
             "PyQt5",
             "docker",
@@ -16,13 +16,13 @@ if __name__ == "__main__":
         setup_requires=["setuptools"],
         entry_points={
             "console_scripts": [
-                "llm-tray-manager=llm_tray_manager:main",
+                "tray-chat-ai=tray_chat_ai:main",
             ],
         },
         data_files=[
-            ("share/llm-tray-manager/images", ["images/llm_tray_default.png", "images/llm_tray_cpu_running.png", "images/llm_tray_gpu_running.png", "images/llm_tray_not_running.png", "images/llm_chat_window_icon.png"]),
-            ("share/applications", ["llm-tray-manager.desktop"]), # Assuming this file will be renamed
-            ("share/doc/llm-tray-manager", ["LICENSE.txt"]),
+            ("share/tray-chat-ai/images", ["images/tray_chat_ai_default.png", "images/tray_chat_ai_cpu_running.png", "images/tray_chat_ai_gpu_running.png", "images/tray_chat_ai_not_running.png", "images/tray_chat_ai_window_icon.png"]),
+            ("share/applications", ["tray-chat-ai.desktop"]),
+            ("share/doc/tray-chat-ai", ["LICENSE.txt"]),
         ],
         zip_safe=False,
     )
