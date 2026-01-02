@@ -8,7 +8,7 @@ import sys
 import subprocess
 import re
 import html # Keep html import as it's used in chat display
-from PyQt5.QtWidgets import QApplication, QSystemTrayIcon, QMenu, QFileDialog, QMessageBox, QInputDialog, QStyle, QAction, QDialog, QVBoxLayout, QTextEdit, QPushButton, QListWidget, QListWidgetItem, QLabel, QHBoxLayout, QWidget, QAbstractItemView, QLineEdit, QShortcut
+from PyQt5.QtWidgets import QApplication,QComboBox, QSystemTrayIcon, QMenu, QFileDialog, QMessageBox, QInputDialog, QStyle, QAction, QDialog, QVBoxLayout, QTextEdit, QPushButton, QListWidget, QListWidgetItem, QLabel, QHBoxLayout, QWidget, QAbstractItemView, QLineEdit, QShortcut
 from PyQt5 import QtGui, QtCore
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import QTimer, QProcess # Import QProcess
@@ -111,7 +111,7 @@ class LlmTrayManager:
         chat_icon = QIcon(chat_icon_path)  # Replace with your icon path
         
         self.send_prompt_action.setIcon(chat_icon)
-        self.send_prompt_action.triggered.connect(self.open_window_send_prompt_and_show_result_in_dialog)
+        self.send_prompt_action.triggered.connect(self.chat_dialog)
         self.menu.addAction(self.send_prompt_action)
         
         self.status_action = QAction("Checking status...")
@@ -233,7 +233,7 @@ class LlmTrayManager:
         # show dropdown dialog with available ollama models to remove one
         models_output = self.list_ollama_models()
         if models_output:
-            models = [line.split()[0] for line in models_output.splitlines() if line]
+            models = [line.split()[0] for line in models_output.splitlines() if line.strip() and line.split()[0] != "NAME"]
             if not models:
                 QMessageBox.information(None, "No Models", "No LLM models found to remove.")
                 return
@@ -264,7 +264,7 @@ class LlmTrayManager:
             client = self.docker_client
             container = client.containers.get(self.docker_image_name)
             if container.status == "running":
-                exec_result = container.exec_run(f"ollama remove {model_name}", stdout=True, stderr=True)
+                exec_result = container.exec_run(f"ollama rm {model_name}", stdout=True, stderr=True)
                 if exec_result.exit_code == 0:
                     output = exec_result.output.decode('utf-8')
                     self.show_status_message("Model Removed", f"Successfully removed model '{model_name}': {output}", 5000)
@@ -290,7 +290,7 @@ class LlmTrayManager:
                 return
 
             if self.send_prompt_action.isEnabled():
-                self.open_window_send_prompt_and_show_result_in_dialog()
+                self.chat_dialog()
             else:
                 self.show_status_message("LLM Tray Manager", "Please start the LLM Server first to chat.", 2000)   
        
@@ -308,13 +308,69 @@ class LlmTrayManager:
         self.tray.showMessage(title, message, QSystemTrayIcon.Information, duration)
         
         
-    def open_window_send_prompt_and_show_result_in_dialog(self):
+    def _update_selected_model_from_chat_dialog(self, item=None):
+        """Update model from dropdown in chat dialog."""
+        model = self.model_combo_box.model()
+        selected_models = []
+        for i in range(model.rowCount()):
+            if model.item(i).checkState() == QtCore.Qt.Checked:
+                selected_models.append(model.item(i).text())
+        
+        if len(selected_models) == 1:
+            self.selected_ollama_model = selected_models[0]
+        else:
+            self.selected_ollama_model = selected_models
+
+        if isinstance(self.selected_ollama_model, list):
+            model_name = ", ".join(self.selected_ollama_model)
+        else:
+            model_name = self.selected_ollama_model if self.selected_ollama_model else "No model selected"
+
+        # store selected model in settings to persist between sessions
+        settings = self.read_settings()
+        settings['selected_ollama_model'] = self.selected_ollama_model
+        self.save_settings(settings)
+        
+        # update menu text to show selected model
+        display_name = model_name
+        if len(display_name) > 30:
+            display_name = display_name[:27] + "..."
+        self.choose_ollama_model_action.setText(f"Select LLM Model (Selected: {display_name})")
+        
+        # update chat dialog title and displayed label
+        active_dialog = QApplication.activeModalWidget()
+        
+        # find label inside the dialog and update it if dialog is open (use isinstance to check if it's QDialog instance and not subclass of QDialog)
+        if active_dialog and isinstance(active_dialog, QDialog):
+            active_dialog.setWindowTitle("Chat with LLM model: " + display_name)
+            # also update the label inside the dialog : find item with text "Selected LLM Model:" and refresh it
+            for i in range(active_dialog.layout().count()):
+                item = active_dialog.layout().itemAt(i)
+                widget = item.widget()
+                if isinstance(widget, QLabel) and widget.text().startswith("Selected LLM Model:"):
+                    widget.setText(f"Selected LLM Model: {model_name}")
+                    break
+        
+        # Update the menu text to show the selected model in bold after selection
+        if self.selected_ollama_model:
+            self.choose_ollama_model_action.setText(f"Select LLM Model (Selected: {display_name})")
+        else:
+            self.choose_ollama_model_action.setText("Select LLM Model")
+        
+        
+    def chat_dialog(self):
         # Create a dialog window for sending prompts
         
-        
-        
         dialog = QDialog() # This dialog is for chatting with an LLM model
-        dialog.setWindowTitle("Chat with LLM model: " + (self.selected_ollama_model if self.selected_ollama_model else "No model selected"))
+        
+        display_model_name = "No model selected"
+        if self.selected_ollama_model:
+            if isinstance(self.selected_ollama_model, list):
+                display_model_name = ", ".join(self.selected_ollama_model)
+            else:
+                display_model_name = self.selected_ollama_model
+        
+        dialog.setWindowTitle("Chat with LLM model: " + display_model_name)
         layout = QVBoxLayout()
         # add resize to maximum button to dialog 
         dialog.setWindowFlags(QtCore.Qt.Window | QtCore.Qt.WindowMinMaxButtonsHint | QtCore.Qt.WindowCloseButtonHint)
@@ -334,12 +390,54 @@ class LlmTrayManager:
         # first call function to sellect ollama model if not selected yet 
         if not self.selected_ollama_model:
             self.choose_ollama_model()
+            
         
         font = QtGui.QFont()
         font.setPointSize(12)
         
+        # add dropdown for model selection at the top of the dialog
+        model_selection_layout = QHBoxLayout()
+        model_selection_label = QLabel("Select Model:")
+        model_selection_label.setFont(font)
+        model_selection_layout.addWidget(model_selection_label)
+
+        self.model_combo_box = QComboBox()
+        self.model_combo_box.setFont(font)
+        self.model_combo_box.setMinimumHeight(30)
+        self.model_combo_box.setStyleSheet("QComboBox { border: 1px solid #0d5c7a; border-radius: 5px; padding: 1px 18px 1px 3px; }")
+        
+        # Populate model combo box use multi 
+        models_output = self.list_ollama_models()
+        if models_output:
+            models = [line.split()[0] for line in models_output.splitlines() if line.strip() and line.split()[0] != "NAME"]
+            
+            model = QtGui.QStandardItemModel()
+            for model_name in models:
+                item = QtGui.QStandardItem(model_name)
+                item.setFlags(QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsEnabled)
+                
+                is_checked = False
+                if isinstance(self.selected_ollama_model, list):
+                    if model_name in self.selected_ollama_model:
+                        is_checked = True
+                elif self.selected_ollama_model == model_name:
+                    is_checked = True
+                
+                if is_checked:
+                    item.setData(QtCore.Qt.Checked, QtCore.Qt.CheckStateRole)
+                else:
+                    item.setData(QtCore.Qt.Unchecked, QtCore.Qt.CheckStateRole)
+                model.appendRow(item)
+            
+            self.model_combo_box.setModel(model)
+            self.model_combo_box.model().itemChanged.connect(self._update_selected_model_from_chat_dialog)
+        
+        model_selection_layout.addWidget(self.model_combo_box)
+        layout.addLayout(model_selection_layout)
+        
+        
         # label on top to show selected model name 
-        model_label = QLabel(f"Selected LLM Model: {self.selected_ollama_model if self.selected_ollama_model else 'No model selected'}")
+        model_label = QLabel(f"Selected LLM Model: {display_model_name}")
         font_label = QtGui.QFont()
         font_label.setPointSize(12)
         font_label.setBold(True)
@@ -547,16 +645,28 @@ class LlmTrayManager:
             client = self.docker_client
             container = client.containers.get(self.docker_image_name)
             if container.status == "running":
-                # Execute the ollama command inside the container (this is Ollama-specific)
-                # use selected ollama model if set (this is specific to Ollama's internal command)
                 if not self.selected_ollama_model:
                     self.show_status_message("Error", "No LLM model selected. Please select one first.", 5000)
                     return "Error: No model selected. Please select a model."
 
-                # Use subprocess to pipe input to stdin, avoiding shell quoting issues
-                cmd = ["docker", "exec", "-i", self.docker_image_name, "ollama", "run", self.selected_ollama_model]
-                result = subprocess.run(cmd, input=prompt, capture_output=True, text=True, check=True) # -i is needed for piping input
-                return ansi_escape.sub('', result.stdout) # Clean ANSI escape codes from output
+                models_to_run = []
+                if isinstance(self.selected_ollama_model, list):
+                    models_to_run = self.selected_ollama_model
+                else:
+                    models_to_run = [self.selected_ollama_model]
+                
+                final_output = ""
+                for model in models_to_run:
+                    # Use subprocess to pipe input to stdin, avoiding shell quoting issues
+                    cmd = ["docker", "exec", "-i", self.docker_image_name, "ollama", "run", model]
+                    result = subprocess.run(cmd, input=prompt, capture_output=True, text=True, check=True) # -i is needed for piping input
+                    output = ansi_escape.sub('', result.stdout)
+                    if len(models_to_run) > 1:
+                        final_output += f"**Model: {model}**\n{output}\n\n"
+                    else:
+                        final_output += output
+                
+                return final_output
             else:
                 logging.error("LLM server container (Ollama) is not running.")
                 self.show_status_message("Error", "LLM server container is not running. Please start it first.", 5000)
@@ -621,8 +731,13 @@ class LlmTrayManager:
         # Placeholder for choosing LLM model (Ollama) from available models. This method is Ollama-specific.
         models_output = self.list_ollama_models()
         if models_output:
-            models = [line.split()[0] for line in models_output.splitlines() if line]
-            item, ok = QInputDialog.getItem(None, "Select Ollama Model", "Available Models:", models, 0, False) # 0 is default index
+            models = [line.split()[0] for line in models_output.splitlines() if line.strip() and line.split()[0] != "NAME"]
+            
+            current_index = 0
+            if self.selected_ollama_model and isinstance(self.selected_ollama_model, str) and self.selected_ollama_model in models:
+                current_index = models.index(self.selected_ollama_model)
+            
+            item, ok = QInputDialog.getItem(None, "Select Ollama Model", "Available Models:", models, current_index, False) # 0 is default index
             if ok and item:
                 QMessageBox.information(None, "Model Selected", f"You selected: {item}")
                 self.selected_ollama_model = item
