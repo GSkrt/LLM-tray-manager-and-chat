@@ -3,17 +3,17 @@
 </p>
 
 
-# Tray Chat Ai 
+# Tray Chat AI 
 
-Tray chat AI is a tiny program for chat and management of local Docker ollama instance. While main purpose was management (start, stop, and model management). I tried to make interface for chat as "chatty" as possible since I found it very convinient. 
-There is still a lot of features to work on but for v1.0 this is ok. Most work was done on chat interface and rendering of content. As such it has a feature to chat with **multiple installed models at once** (its like asking for a second opipnion).   
+Tray Chat AI is a lightweight program for chatting with and managing a local Docker Ollama instance. While the main purpose was management (start, stop, and model management), I tried to make the chat interface as user-friendly as possible since I found it very convenient. 
+There are still many features to work on, but for v1.0 this is stable. Most work was done on the chat interface and content rendering. As such, it has a feature to chat with **multiple installed models at once** (it's like asking for a second opinion).   
 
 It serves two main functions: 
 1. Docker based Ollama management (status, pull model, remove model , start and stop docker instance running llms)
 2. Quick chat interface accessible from system tray with options to run single prompt on multiple models at once. 
 
 It was built for managing Ai models from tray, but this prompt to multiple models quickly became its core feature (It's nice to compare capabilities of the model). 
-As long time user of open source I thought I should return somethin back to community. 
+As a long-time user of open source, I thought I should return something back to the community. 
 
 
 ## Functions and GUI
@@ -70,7 +70,7 @@ https://github.com/user-attachments/assets/4ee96f3e-75c8-4be9-a838-429e1794580b
 
 ## Features
 
-*   **Chat Interface**: A built-in chat window with syntax highlighting for code blocks that can interact with multiple models simultaniously for the same promt, so you can compare results.
+*   **Chat Interface**: A built-in chat window with syntax highlighting for code blocks that can interact with multiple models simultaneously for the same prompt, so you can compare results.
 *   **System Tray Indicator**: Visual status of your Ollama container (Stopped, Running on CPU, Running on GPU). Detection is done by checking the Docker process list giving square around lama icon if CPU and round for GPU. 
 *   **Control**: Start and Stop the Ollama Docker container easily.
 *   **Model Management**: Pull new models and select which model to run.
@@ -82,7 +82,7 @@ https://github.com/user-attachments/assets/4ee96f3e-75c8-4be9-a838-429e1794580b
 *   **User permissions**: Ensure your user is in the `docker` group (`sudo usermod -aG docker $USER`).
 *   **Docker** installed and running.
 *   **Docker nvidia container runtime** for GPU support (if you're using a machine with a GPU) otherwise you will get square around icon.
-*   **Python 3** (if you use Appimage you )
+*   **Python 3**
 
 ## Installation
 
@@ -121,4 +121,3 @@ This project is licensed under the GPLv3 License - see the LICENSE.txt file for 
 ## Contribution 
 
 Feel free to contribute to this program. Keep in mind the scope of the program is using local AI models for integrating other comercial AI products contact me. 
-
