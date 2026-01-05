@@ -381,8 +381,6 @@ class TrayChatAIManager:
         dialog.exec_()
     
     
-    
-    
     def update_tooltip_with_selectd_models(self):
         if self.selected_ollama_models:
             model_name = ", ".join(self.selected_ollama_models)
@@ -1191,15 +1189,33 @@ class TrayChatAIManager:
         dialog.setWindowTitle("Manage API Connections")
         dialog.resize(600, 400)
         layout = QHBoxLayout()
+        
+        
+       
+            
 
         # List of connections
+        
         list_widget = QListWidget()
         list_widget.addItems(self.openai_connections.keys())
+        
+        
         layout.addWidget(list_widget)
+        
 
         # Details area
         details_widget = QWidget()
         details_layout = QVBoxLayout()
+        
+         # connections icon (label) to path 
+        connections_icon = QLabel()
+        icon_path = os.path.join(self.image_dir, "connection_manager.svg")
+        if os.path.exists(icon_path):
+            pixmap = QIcon(icon_path).pixmap(150, 150)
+            if not pixmap.isNull():
+                connections_icon.setPixmap(pixmap)
+                connections_icon.setAlignment(QtCore.Qt.AlignCenter)
+                details_layout.addWidget(connections_icon)
         
         name_input = QLineEdit()
         name_input.setPlaceholderText("Connection Name (e.g. ollama)")
