@@ -1123,7 +1123,7 @@ class TrayChatAIManager:
             # Check online status and update UI
             if self.check_online_connection(connection_details):
                 self.status_action.setText(f"{self.active_connection}: Online 🟢")
-                online_icon_path = os.path.join(self.image_dir, "tray_chat_ai_gpu_running.png") # User will create this icon
+                online_icon_path = os.path.join(self.image_dir, "tray_chat_ai_web_running.png") # User will create this icon
                 if os.path.exists(online_icon_path):
                     self.tray.setIcon(QIcon(online_icon_path))
                 else: # Fallback icon
