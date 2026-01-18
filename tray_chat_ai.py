@@ -171,7 +171,9 @@ class TrayChatAIManager:
             self.selected_ollama_models = raw_model
             
         self.check_timer_interval = settings_json.get('status_check_interval', 5000) # default to 5000 ms
+        self.font_size = settings_json.get('font_size', 11)
         settings_json['selected_ollama_model'] = self.selected_ollama_models # get a list of selected models 
+        settings_json['font_size'] = self.font_size
         self.save_settings(settings_json) # if settings are missing keys, save them with defaults
         
         self.docker_client = None
@@ -552,15 +554,19 @@ class TrayChatAIManager:
         font.setPointSize(12)
         
         # add dropdown for model selection at the top of the dialog
-        model_selection_layout = QHBoxLayout()
+        settings_layout = QHBoxLayout()
         model_selection_label = QLabel("Select Model(s):")
         model_selection_label.setFont(font)
-        model_selection_layout.addWidget(model_selection_label)
+        settings_layout.addWidget(model_selection_label)
 
         self.model_combo_box = QComboBox()
         self.model_combo_box.setFont(font)
         self.model_combo_box.setMinimumHeight(30)
         self.model_combo_box.setStyleSheet("QComboBox { border: 1px solid #0d5c7a; border-radius: 5px; padding: 1px 18px 1px 3px; }")
+        
+        
+
+        
         
         # Populate model combo box use multi 
         models = self.list_models()
@@ -584,8 +590,22 @@ class TrayChatAIManager:
             self.model_combo_box.setModel(model)
             self.model_combo_box.model().itemChanged.connect(self._update_selected_model_from_chat_dialog)
         
-        model_selection_layout.addWidget(self.model_combo_box)
-        layout.addLayout(model_selection_layout)
+        settings_layout.addWidget(self.model_combo_box)
+
+        # Font size selection
+        settings_layout.addStretch(1)
+        font_size_label = QLabel("Font Size:")
+        font_size_combo = QComboBox()
+        font_sizes = ['9', '10', '11', '12', '14', '16', '18', '20']
+        font_size_combo.addItems(font_sizes)
+        font_size_combo.setCurrentText(str(self.font_size))
+        font_size_combo.setFixedWidth(75)
+        font_size_label.setFont(font)
+        font_size_combo.setFont(font)
+        settings_layout.addWidget(font_size_label)
+        settings_layout.addWidget(font_size_combo)
+        
+        layout.addLayout(settings_layout)
         
         
         # label on top to show selected model name 
@@ -627,7 +647,11 @@ class TrayChatAIManager:
         # Input Area
         prompt_input = QTextEdit()
         prompt_input.setStyleSheet("QTextEdit { background-color: #FFFFFF; border: 0.5px solid #0d5c7a; border-radius: 10px; padding: 10px; }")
-        prompt_input.setFont(font)
+        
+        # Set initial font size for prompt input
+        initial_font = QtGui.QFont()
+        initial_font.setPointSize(self.font_size)
+        prompt_input.setFont(initial_font)
         prompt_input.setMaximumHeight(100)
         prompt_input.setPlaceholderText("Type your message here... (Press Enter to send), use F11 for fullscreen")
         layout.addWidget(prompt_input)
@@ -729,6 +753,70 @@ class TrayChatAIManager:
         dialog.shortcut_f11 = QShortcut(QtGui.QKeySequence(QtCore.Qt.Key_F11), dialog)
         dialog.shortcut_f11.activated.connect(lambda: dialog.showNormal() if dialog.isFullScreen() else dialog.showFullScreen())
         
+    
+        
+        
+        # increase or decrease font size (tied to Ctrl+ or - using event)
+        def increase_font_size(): 
+            new_size = self.font_size + 1
+            update_font_size(str(new_size))
+            # Sync the font size combo box with the new value
+            font_size_combo.blockSignals(True)
+            font_size_combo.setCurrentText(str(self.font_size))
+            font_size_combo.blockSignals(False)
+
+        def decrease_font_size():
+            new_size = self.font_size - 1
+            update_font_size(str(new_size))
+            # Sync the font size combo box with the new value
+            font_size_combo.blockSignals(True)
+            font_size_combo.setCurrentText(str(self.font_size))
+            font_size_combo.blockSignals(False) 
+
+        dialog.shortcut_Ctrl_plus = QShortcut(QtGui.QKeySequence("Ctrl++"), dialog) 
+        dialog.shortcut_Ctrl_plus.activated.connect(increase_font_size)
+        
+        dialog.shortcut_Ctrl_minus = QShortcut(QtGui.QKeySequence("Ctrl+-"), dialog)
+        dialog.shortcut_Ctrl_minus.activated.connect(decrease_font_size)
+        
+        
+        
+        def update_font_size(size_str):
+            try:
+                size = int(size_str)
+                self.font_size = size
+
+                # Update prompt_input font
+                font = prompt_input.font()
+                font.setPointSize(size)
+                prompt_input.setFont(font)
+
+                # Update existing chat bubbles
+                for i in range(chat_display.count()):
+                    item = chat_display.item(i)
+                    widget = chat_display.itemWidget(item)
+                    if widget:
+                        label = widget.findChild(QLabel)
+                        if label:
+                            current_style = label.styleSheet()
+                            # Use regex to replace font-size
+                            new_style = re.sub(r'font-size:\s*\d+pt;', f'font-size: {size}pt;', current_style)
+                            label.setStyleSheet(new_style)
+                        
+                        widget.adjustSize()
+                        item.setSizeHint(widget.sizeHint())
+
+                # Save the new font size setting
+                settings = self.read_settings()
+                settings['font_size'] = size
+                self.save_settings(settings)
+
+            except (ValueError, AttributeError) as e:
+                logging.warning(f"Could not update font size: {e}")
+
+        # Updates font sizes in the chat display
+        font_size_combo.currentTextChanged.connect(update_font_size)
+        
         send_button.clicked.connect(lambda: self.send_prompt_and_show_result(prompt_input, chat_display, dialog))
 
         dialog.setLayout(layout)
@@ -771,7 +859,8 @@ class TrayChatAIManager:
         label.setOpenExternalLinks(True)
         
         if role == "User":
-            label.setStyleSheet("background-color: #DCF8C6; color: black; border-radius: 15px; padding: 10px; font-size: 12pt;")
+
+            label.setStyleSheet(f"background-color: #DCF8C6; color: black; border-radius: 15px; padding: 10px; font-size: {self.font_size}pt;")
             # Add stretch before the widget to push it to the right
             layout.addStretch()
             
@@ -796,7 +885,8 @@ class TrayChatAIManager:
             
             layout.addWidget(label)
         else:
-            label.setStyleSheet("background-color: #FFFFFF; color: black; border-radius: 15px; padding: 10px; font-size: 12pt;")
+
+            label.setStyleSheet(f"background-color: #FFFFFF; color: black; border-radius: 15px; padding: 10px; font-size: {self.font_size}pt;")
             layout.addWidget(label)
             # Add stretch after the widget to keep it on the left
             layout.addStretch()
