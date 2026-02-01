@@ -65,10 +65,9 @@ You can open the chat window in several ways:
 
 ## Demo Video 
 
-Here is a quick overview of the application in action (video was made in devel phase..):
+Here is a quick overview of the application in action, still not the latest version ...
 
-
-https://github.com/user-attachments/assets/4ee96f3e-75c8-4be9-a838-429e1794580b
+[![Watch the video](https://img.youtube.com/vi/7fkE8ZjF61c/maxresdefault.jpg)](https://youtu.be/7fkE8ZjF61c)
 
 
 
